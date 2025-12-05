@@ -460,6 +460,14 @@ async function init() {
     } else {
         console.error("DEBUG: locationInput element NOT FOUND.");
     }
+    // Fix: Check for stale/broken demo key from old PR version and purge it
+    const STALE_KEY = "AIzaSyC_MiybngCmG_DSuXZfWBOHr5d8vI8iS2E";
+    if (localStorage.getItem('gemini_api_key') === STALE_KEY) {
+        console.log("Migration: Removing stale API key from local storage");
+        localStorage.removeItem('gemini_api_key');
+        // Re-init state key
+        state.apiKey = getEnvironmentApiKey() || '';
+    }
 
     updateUIState();
     if (state.apiKey) fetchAvailableModels();
