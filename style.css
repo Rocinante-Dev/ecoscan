@@ -433,3 +433,23 @@ body {
         transform: translateY(0px);
     }
 }
+/* Markdown Text Styles */
+.markdown-body {
+    color: var(--text-primary);
+    line-height: 1.6;
+    font-size: 1rem;
+}
+
+.markdown-body a {
+    color: var(--accent-color) !important;
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+.markdown-body a:hover {
+    color: #81d4fa !important;
+}
+
+.markdown-body strong {
+    color: var(--primary-color);
+}

@@ -155,7 +155,7 @@ async function analyzeItem(input) {
 
             STRICT RESPONSE GUIDELINES:
             1. LOCATION: Deduce specific City/Municipality.
-            2. TEMPORAL AWARENESS: Be aware of current date (${dateStr}) and upcoming provider changes (e.g. 2025/2026 transitions).
+            2. TEMPORAL AWARENESS: Be aware of current date (${dateStr}). KEY FACT: Ottawa's transition to Circular Materials is JAN 1, 2026 (NOT 2025).
             3. ACCURACY: Define bin colors explicitly (e.g. "Black Bin (Garbage)"). Check for rules like "screw caps back on".
             4. VERIFICATION: Provide a clickable Google Search link.
 
@@ -175,7 +175,7 @@ async function analyzeItem(input) {
 
             STRICT RESPONSE GUIDELINES:
             1. LOCATION: Deduce specific City/Municipality.
-            2. TEMPORAL AWARENESS: Be aware of current date (${dateStr}) and changes (e.g. 2026 contracts).
+            2. TEMPORAL AWARENESS: Be aware of current date (${dateStr}). KEY FACT: Ottawa's transition to Circular Materials is JAN 1, 2026 (NOT 2025).
             3. ACCURACY: Define bin colors explicitly.
             4. VERIFICATION: Provide a clickable Google Search link.
 

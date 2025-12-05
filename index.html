@@ -24,7 +24,7 @@
 <body>
     <script>
         // Version stub for error handling
-        const APP_VERSION_STUB = "v1.2.2";
+        const APP_VERSION_STUB = "v1.2.3";
         window.onerror = function (msg, url, lineNo, columnNo, error) {
             alert("Global Error (" + APP_VERSION_STUB + "): " + msg + "\nURL: " + url + "\nLine: " + lineNo);
             return false;
@@ -78,7 +78,7 @@
                     <canvas id="camera-canvas" hidden></canvas>
                     <div class="camera-overlay">
                         <p class="hint-text">Point at an item to recycle</p>
-                        <p class="app-version version-text">v1.2.2</p>
+                        <p class="app-version version-text">v1.2.3</p>
                     </div>
                 </div>
                 <div class="controls">
@@ -149,13 +149,13 @@
                     </div>
                     <button id="save-key-btn" class="primary-btn">Save Key</button>
                     <button id="reset-key-btn" class="secondary-btn" hidden>Remove Key & Use Demo</button>
-                    <p class="small-text app-version" style="text-align: center; margin-top: 2rem; opacity: 0.5;">v1.2.2
+                    <p class="small-text app-version" style="text-align: center; margin-top: 2rem; opacity: 0.5;">v1.2.3
                     </p>
                 </div>
             </section>
         </main>
     </div>
-    <script type="module" src="app.js?v=9"></script>
+    <script type="module" src="app.js?v=10"></script>
 </body>
 
 </html>
