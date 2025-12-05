@@ -6,6 +6,7 @@ console.log("App.js module loaded");
 // State
 const state = {
     apiKey: localStorage.getItem('gemini_api_key') || '',
+    model: localStorage.getItem('gemini_model') || 'gemini-1.5-pro-latest',
     currentView: 'view-camera',
     stream: null
 };
@@ -105,6 +106,47 @@ function getLocation() {
 }
 
 // Gemini Logic
+async function fetchAvailableModels() {
+    if (!state.apiKey) return;
+    try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${state.apiKey}`);
+        if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+        const data = await response.json();
+
+        if (data.models && elements.modelSelect) {
+            const contentModels = data.models.filter(m =>
+                m.supportedGenerationMethods && m.supportedGenerationMethods.includes("generateContent")
+            );
+
+            // Sort: Prefer 'pro' then 'flash' then others
+            contentModels.sort((a, b) => {
+                const aName = a.displayName || a.name;
+                const bName = b.displayName || b.name;
+                if (aName.includes('Pro') && !bName.includes('Pro')) return -1;
+                if (!aName.includes('Pro') && bName.includes('Pro')) return 1;
+                return 0;
+            });
+
+            elements.modelSelect.innerHTML = contentModels.map(m => {
+                const id = m.name.replace('models/', '');
+                const name = m.displayName || id;
+                return `<option value="${id}" ${state.model === id ? 'selected' : ''}>${name} (${id})</option>`;
+            }).join('');
+
+            // Ensure selection tracks state if current invalid
+            if (contentModels.length > 0 && !contentModels.find(m => m.name.replace('models/', '') === state.model)) {
+                // Keep default if nothing matches or update? 
+                // If default 'gemini-1.5-pro-latest' invalid, maybe we should switch?
+                // For now, let's just warn or keep as is.
+                console.warn(`Stored model ${state.model} not found in available list.`);
+            }
+        }
+    } catch (e) {
+        console.error("Failed to fetch models:", e);
+    }
+}
+
+// Gemini Logic
 async function analyzeImage(base64Image) {
     if (!state.apiKey) {
         alert("Please set your Gemini API Key in settings first.");
@@ -117,7 +159,7 @@ async function analyzeImage(base64Image) {
 
     try {
         const genAI = new GoogleGenerativeAI(state.apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" }); // Using 1.5 Pro as 3 is not public yet, or fallback
+        const model = genAI.getGenerativeModel({ model: state.model });
 
         const location = await getLocation();
 
@@ -194,7 +236,8 @@ async function init() {
             closeSettingsBtn: document.getElementById('close-settings-btn'),
             backBtn: document.getElementById('back-btn'),
             apiKeyInput: document.getElementById('api-key-input'),
-            saveKeyBtn: document.getElementById('save-key-btn')
+            saveKeyBtn: document.getElementById('save-key-btn'),
+            modelSelect: document.getElementById('model-select')
         };
 
         console.log("Elements queried:", elements);
@@ -243,11 +286,26 @@ async function init() {
                     state.apiKey = key;
                     localStorage.setItem('gemini_api_key', key);
                     alert("API Key saved!");
+                    fetchAvailableModels();
                     switchView('view-camera');
                 } else {
                     alert("Please enter a valid key.");
                 }
             };
+        }
+
+        // Model Selection Listener
+        if (elements.modelSelect) {
+            elements.modelSelect.onchange = () => {
+                state.model = elements.modelSelect.value;
+                localStorage.setItem('gemini_model', state.model);
+                console.log("Model changed to:", state.model);
+            };
+        }
+
+        // Initial fetch if key exists
+        if (state.apiKey) {
+            fetchAvailableModels();
         }
 
         // Start camera
