@@ -22,7 +22,7 @@ let elements = {};
 function switchView(viewName) {
     console.log(`Switching to view: ${viewName}`);
     Object.values(views).forEach(view => {
-        view.classList.remove('active');
+        if (view) view.classList.remove('active');
     });
     if (views[viewName.replace('view-', '')]) {
         views[viewName.replace('view-', '')].classList.add('active');
