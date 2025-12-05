@@ -171,17 +171,18 @@ async function analyzeImage(base64Image) {
         const base64Data = base64Image.split(',')[1];
 
         const prompt = `
-        You are an expert recycling assistant. I have taken a picture of an item.
-        My current location is: ${location}.
-        
-        Please identify the item and provide specific recycling or disposal instructions.
-        Consider local recycling rules for my location if you know them, otherwise provide general best practices.
-        
+        Identify this item and provide recycling instructions for location: ${location}.
+
+        STRICT RESPONSE GUIDELINES:
+        1. DIRECTNESS: Do NOT use conversational fillers (e.g., "Certainly!", "Here is..."). Start directly with the item name.
+        2. ACCURACY: If you are unsure about specific local rules for this location, state "Local rules vary" and provide general best practices. Do NOT hallucinate specific local capabilities.
+        3. VERIFICATION: Provide 1-2 search terms or links where the user can verify this (e.g., "Search [City] recycling guide" or specific URL if known).
+
         Format your response in Markdown:
-        1. **Item Name**: [Name]
-        2. **Recyclable?**: [Yes/No/Check Local]
-        3. **Instructions**: [Step by step guide]
-        4. **Fun Fact**: [Eco-friendly fact about this item]
+        ### [Item Name]
+        **Recyclable:** [Yes/No/Check Local]
+        **Instructions:** [Concise, step-by-step disposal guide]
+        **Verify:** [Link or Search Term for local confirmation]
         `;
 
         const imagePart = {
@@ -278,6 +279,7 @@ async function init() {
     try {
         // Query elements
         views = {
+            intro: document.getElementById('view-intro'),
             camera: document.getElementById('view-camera'),
             result: document.getElementById('view-result'),
             settings: document.getElementById('view-settings')
@@ -299,10 +301,19 @@ async function init() {
             modelSelect: document.getElementById('model-select'),
             demoBadge: document.getElementById('demo-badge'),
             fileInput: document.getElementById('file-input'),
-            uploadBtn: document.getElementById('upload-btn')
+            uploadBtn: document.getElementById('upload-btn'),
+            getStartedBtn: document.getElementById('get-started-btn')
         };
 
         console.log("Elements queried:", elements);
+
+        // Intro Logic
+        if (elements.getStartedBtn) {
+            elements.getStartedBtn.onclick = () => {
+                localStorage.setItem('saw_intro', 'true');
+                switchView('view-camera');
+            };
+        }
 
         // Attach listeners
         if (elements.captureBtn) {
@@ -413,8 +424,14 @@ async function init() {
             fetchAvailableModels();
         }
 
-        // Start camera
-        await startCamera();
+        // Determine Start View
+        const sawIntro = localStorage.getItem('saw_intro');
+        if (!sawIntro) {
+            switchView('view-intro');
+        } else {
+            // Start transparently
+            switchView('view-camera');
+        }
 
         // Expose for debugging (Sanitized)
         const debugState = { ...state };

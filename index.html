@@ -44,8 +44,35 @@
 
         <!-- Main Content -->
         <main id="main-content">
+            <!-- Intro/Install View -->
+            <section id="view-intro" class="view">
+                <div class="intro-content">
+                    <div class="logo-large">♻️</div>
+                    <h1 style="margin-bottom: 0.5rem;">Welcome to SortWise</h1>
+                    <p class="subtitle" style="color: var(--text-secondary); margin-bottom: 2rem;">Your AI Recycling
+                        Assistant</p>
+
+                    <div class="install-guide">
+                        <h3>📱 How to Install</h3>
+                        <p>For the best experience, add this app to your home screen:</p>
+                        <div class="platform-instruction">
+                            <strong>iOS (Safari):</strong>
+                            <p>Tap Share <span style="font-size:1.2rem">⎋</span> → "Add to Home Screen" <span
+                                    style="font-size:1.2rem">⊞</span></p>
+                        </div>
+                        <div class="platform-instruction">
+                            <strong>Android (Chrome):</strong>
+                            <p>Tap Menu <span style="font-size:1.2rem">⋮</span> → "Install app" or "Add to Home screen"
+                            </p>
+                        </div>
+                    </div>
+
+                    <button id="get-started-btn" class="primary-btn" style="margin-top: 2rem;">Get Started →</button>
+                </div>
+            </section>
+
             <!-- Home/Camera View -->
-            <section id="view-camera" class="view active">
+            <section id="view-camera" class="view">
                 <div class="camera-container">
                     <video id="camera-feed" autoplay playsinline muted></video>
                     <canvas id="camera-canvas" hidden></canvas>
@@ -76,6 +103,8 @@
                     <p>Analyzing with Gemini...</p>
                 </div>
                 <div id="analysis-content" class="markdown-body"></div>
+                <p class="disclaimer-text">⚠️ <strong>Note:</strong> Advice is AI-generated and may be inaccurate.
+                    Always verify with your local recycling authority.</p>
             </section>
 
             <!-- Settings View -->
