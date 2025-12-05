@@ -23,7 +23,7 @@
 
 <body>
     <script>
-        const APP_VERSION = "v0.1.1 (Debug)";
+        const APP_VERSION = "v1.0.0";
         window.onerror = function (msg, url, lineNo, columnNo, error) {
             alert("Global Error (" + APP_VERSION + "): " + msg + "\nURL: " + url + "\nLine: " + lineNo);
             return false;
@@ -50,7 +50,7 @@
                     <canvas id="camera-canvas" hidden></canvas>
                     <div class="camera-overlay">
                         <p class="hint-text">Point at an item to recycle</p>
-                        <p class="version-text">v0.1.1 (Debug)</p>
+                        <p class="app-version version-text">v1.0.0</p>
                     </div>
                 </div>
                 <div class="controls">
@@ -81,6 +81,7 @@
                     <h2>Settings</h2>
                 </div>
                 <div class="settings-form">
+                    <div id="demo-badge" class="badge warning" hidden>Using Demo Key</div>
                     <label for="api-key-input">Gemini API Key</label>
                     <input type="password" id="api-key-input" placeholder="Paste your API key here">
                     <div class="help-links">
@@ -92,18 +93,127 @@
                         <label for="model-select">Model Preference</label>
                         <select id="model-select"
                             style="width: 100%; padding: 0.8rem; border-radius: 12px; border: 1px solid var(--border-color, #ddd); background: var(--bg-color, #fff); font-family: inherit;">
-                            <option value="gemini-1.5-pro-latest" selected>Gemini 1.5 Pro (Default)</option>
-                            <option value="gemini-1.5-flash-latest">Gemini 1.5 Flash (Faster)</option>
-                        </select>
-                        <p class="small-text" style="margin-top: 0.25rem;">Select which AI model to use.</p>
-                    </div>
-                    <button id="save-key-btn" class="primary-btn">Save Key</button>
-                    <p class="small-text" style="text-align: center; margin-top: 2rem; opacity: 0.5;">v0.1.1 (Debug)</p>
-                </div>
-            </section>
-        </main>
-    </div>
-    <script type="module" src="app.js?v=6"></script>
-</body>
+                            <!DOCTYPE html>
+                            <html lang="en">
 
-</html>
+                            <head>
+                                <meta charset="UTF-8">
+                                <meta name="viewport"
+                                    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+                                <title>EcoScan - AI Recycling Assistant</title>
+                                <link rel="stylesheet" href="style.css">
+                                <link rel="manifest" href="manifest.json">
+                                <link rel="icon" type="image/png" href="icon.png">
+                                <link rel="apple-touch-icon" href="icon.png">
+                                <link rel="preconnect" href="https://fonts.googleapis.com">
+                                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                                <link
+                                    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap"
+                                    rel="stylesheet">
+                                <script type="importmap">
+      {
+        "imports": {
+          "@google/generative-ai": "https://esm.run/@google/generative-ai"
+        }
+      }
+    </script>
+                            </head>
+
+                            <body>
+                                <script>
+                                    const APP_VERSION = "v1.0.0";
+                                    window.onerror = function (msg, url, lineNo, columnNo, error) {
+                                        alert("Global Error (" + APP_VERSION + "): " + msg + "\nURL: " + url + "\nLine: " + lineNo);
+                                        return false;
+                                    };
+                                    window.addEventListener('error', function (e) {
+                                        if (e.target.tagName === 'SCRIPT') {
+                                            alert("Script loading error (" + APP_VERSION + "): " + e.target.src);
+                                        }
+                                    }, true);
+                                </script>
+                                <div id="app">
+                                    <!-- Header -->
+                                    <header class="app-header">
+                                        <div class="logo">EcoScan ♻️</div>
+                                        <button id="settings-btn" class="icon-btn" aria-label="Settings">⚙️</button>
+                                    </header>
+
+                                    <!-- Main Content -->
+                                    <main id="main-content">
+                                        <!-- Home/Camera View -->
+                                        <section id="view-camera" class="view active">
+                                            <div class="camera-container">
+                                                <video id="camera-feed" autoplay playsinline muted></video>
+                                                <canvas id="camera-canvas" hidden></canvas>
+                                                <div class="camera-overlay">
+                                                    <p class="hint-text">Point at an item to recycle</p>
+                                                    <p class="app-version version-text">v1.0.0</p>
+                                                </div>
+                                            </div>
+                                            <div class="controls">
+                                                <button id="capture-btn" class="capture-btn"
+                                                    aria-label="Take Picture"></button>
+                                            </div>
+                                        </section>
+
+                                        <!-- Results View -->
+                                        <section id="view-result" class="view">
+                                            <div class="result-header">
+                                                <button id="back-btn" class="text-btn">← Back</button>
+                                                <h2>Analysis</h2>
+                                            </div>
+                                            <div class="captured-image-container">
+                                                <img id="captured-image" alt="Captured item" />
+                                            </div>
+                                            <div id="loading-indicator" class="hidden">
+                                                <div class="spinner"></div>
+                                                <p>Analyzing with Gemini...</p>
+                                            </div>
+                                            <div id="analysis-content" class="markdown-body"></div>
+                                        </section>
+
+                                        <!-- Settings View -->
+                                        <section id="view-settings" class="view">
+                                            <div class="settings-header">
+                                                <button id="close-settings-btn" class="text-btn">Close</button>
+                                                <h2>Settings</h2>
+                                            </div>
+                                            <div class="settings-form">
+                                                <div id="demo-badge" class="badge warning" hidden>Using Demo Key</div>
+                                                <label for="api-key-input">Gemini API Key</label>
+                                                <input type="password" id="api-key-input"
+                                                    placeholder="Paste your API key here">
+                                                <div class="help-links">
+                                                    <p class="small-text">Your key is stored locally in your browser.
+                                                    </p>
+                                                    <a href="https://aistudio.google.com/app/apikey" target="_blank"
+                                                        class="link-text">Get an API
+                                                        Key ›</a>
+                                                </div>
+                                                <div class="input-group" style="margin-bottom: 1rem;">
+                                                    <label for="model-select">Model Preference</label>
+                                                    <select id="model-select"
+                                                        style="width: 100%; padding: 0.8rem; border-radius: 12px; border: 1px solid var(--border-color, #ddd); background: var(--bg-color, #fff); font-family: inherit;">
+                                                        <option value="gemini-1.5-pro-latest" selected>Gemini 1.5 Pro
+                                                            (Default)</option>
+                                                        <option value="gemini-1.5-flash-latest">Gemini 1.5 Flash
+                                                            (Faster)</option>
+                                                    </select>
+                                                    <p class="small-text" style="margin-top: 0.25rem;">Select which AI
+                                                        model to use.</p>
+                                                </div>
+                                                <button id="save-key-btn" class="primary-btn">Save Key</button>
+                                                <button id="reset-key-btn" class="secondary-btn" hidden>Remove Key & Use
+                                                    Demo</button>
+                                                <p class="small-text app-version"
+                                                    style="text-align: center; margin-top: 2rem; opacity: 0.5;">v1.0.0
+                                                </p>
+                                            </div>
+                                        </section>
+                                    </main>
+                                </div>
+                                <script type="module" src="app.js?v=6"></script>
+                            </body>
+
+                            </html>

@@ -355,6 +355,42 @@ body {
     background-color: var(--primary-hover);
 }
 
+.secondary-btn {
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--surface-color);
+    background-color: transparent;
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 1rem;
+}
+
+.secondary-btn:hover {
+    border-color: var(--text-secondary);
+    color: var(--text-primary);
+}
+
 .hidden {
     display: none !important;
+}
+
+/* Badges */
+.badge {
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-block;
+    text-align: center;
+}
+
+.badge.warning {
+    background-color: rgba(245, 158, 11, 0.2);
+    /* Amber 500 equivalent */
+    color: #fbbf24;
+    /* Amber 400 */
+    border: 1px solid rgba(245, 158, 11, 0.4);
 }

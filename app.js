@@ -1,14 +1,19 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { CONFIG } from "./config.js";
 
-console.log("App.js module loaded");
-// alert("App.js loaded"); // Uncomment if needed for extreme debugging
+console.log(`App.js module loaded. Version: ${CONFIG.APP_VERSION}`);
 
 // State
 const state = {
-    apiKey: localStorage.getItem('gemini_api_key') || '',
-    model: localStorage.getItem('gemini_model') || 'gemini-1.5-pro-latest',
+    // If local key exists, use it. Otherwise use default/demo key.
+    apiKey: localStorage.getItem('gemini_api_key') || CONFIG.DEFAULT_API_KEY || '',
+    model: localStorage.getItem('gemini_model') || CONFIG.DEFAULT_MODEL,
     currentView: 'view-camera',
-    stream: null
+    stream: null,
+    // Demo mode is active if we are using the default key AND there is no local key override
+    get isDemoMode() {
+        return !localStorage.getItem('gemini_api_key') && this.apiKey === CONFIG.DEFAULT_API_KEY && !!CONFIG.DEFAULT_API_KEY;
+    }
 };
 
 // DOM Elements
@@ -30,6 +35,9 @@ function switchView(viewName) {
         } else {
             stopCamera();
         }
+
+        // Refresh UI state when switching views
+        updateUIState();
     } else {
         console.error(`View not found: ${viewName}`);
     }
@@ -135,9 +143,6 @@ async function fetchAvailableModels() {
 
             // Ensure selection tracks state if current invalid
             if (contentModels.length > 0 && !contentModels.find(m => m.name.replace('models/', '') === state.model)) {
-                // Keep default if nothing matches or update? 
-                // If default 'gemini-1.5-pro-latest' invalid, maybe we should switch?
-                // For now, let's just warn or keep as is.
                 console.warn(`Stored model ${state.model} not found in available list.`);
             }
         }
@@ -159,11 +164,10 @@ async function analyzeImage(base64Image) {
 
     try {
         const genAI = new GoogleGenerativeAI(state.apiKey);
-        const model = genAI.getGenerativeModel({ model: state.model });
+        let model = genAI.getGenerativeModel({ model: state.model });
 
         const location = await getLocation();
 
-        // Remove header from base64
         const base64Data = base64Image.split(',')[1];
 
         const prompt = `
@@ -187,11 +191,35 @@ async function analyzeImage(base64Image) {
             },
         };
 
-        const result = await model.generateContent([prompt, imagePart]);
-        const response = await result.response;
-        const text = response.text();
+        try {
+            console.log(`Attempting generation with ${state.model}...`);
+            const result = await model.generateContent([prompt, imagePart]);
+            const response = await result.response;
+            const text = response.text();
+            renderMarkdown(text);
+        } catch (error) {
+            console.warn(`Error with ${state.model}:`, error);
 
-        renderMarkdown(text);
+            // Check for Quota Exceeded (429) or Service Unavailable (503)
+            const isQuotaError = error.message.includes('429') || error.message.includes('Resource has been exhausted');
+
+            if (isQuotaError && state.model !== CONFIG.FALLBACK_MODEL) {
+                console.log(`Switching to fallback model: ${CONFIG.FALLBACK_MODEL}`);
+                elements.analysisContent.innerHTML = `<p style="color: var(--warning-color, orange)">NOTE: High traffic detected. Switched to faster model (${CONFIG.FALLBACK_MODEL}).</p>`;
+
+                model = genAI.getGenerativeModel({ model: CONFIG.FALLBACK_MODEL });
+                const result = await model.generateContent([prompt, imagePart]);
+                const response = await result.response;
+                const text = response.text();
+
+                // Prepend note about fallback
+                const note = `> [!NOTE]\n> Used fallback model due to high traffic.\n\n`;
+                renderMarkdown(note + text);
+            } else {
+                throw error; // Re-throw if not quota error or already on fallback
+            }
+        }
+
     } catch (error) {
         console.error("Gemini Error:", error);
         elements.analysisContent.innerHTML = `<p style="color: var(--danger-color)">Error analyzing image: ${error.message}</p>`;
@@ -201,8 +229,6 @@ async function analyzeImage(base64Image) {
 }
 
 function renderMarkdown(text) {
-    // Simple markdown to HTML converter for the MVP
-    // In a real app, use a library like marked
     let html = text
         .replace(/^### (.*$)/gim, '<h3>$1</h3>')
         .replace(/^## (.*$)/gim, '<h2>$1</h2>')
@@ -211,6 +237,38 @@ function renderMarkdown(text) {
         .replace(/\n/gim, '<br>');
 
     elements.analysisContent.innerHTML = html;
+}
+
+// UI Updates
+function updateUIState() {
+    // Update Version Displays
+    document.querySelectorAll('.app-version').forEach(el => {
+        el.textContent = CONFIG.APP_VERSION;
+    });
+
+    // Update Demo Mode Indicators
+    const isDemo = state.isDemoMode;
+    document.body.classList.toggle('demo-mode', isDemo);
+
+    // Update Settings UI
+    if (elements.apiKeyInput) {
+        if (isDemo) {
+            elements.apiKeyInput.placeholder = "Using Demo Key (Active)";
+            elements.apiKeyInput.value = ""; // Don't show the actual demo key
+        } else {
+            elements.apiKeyInput.placeholder = "Paste your API key here";
+            // Only show value if it's the user's custom key
+            elements.apiKeyInput.value = state.apiKey === CONFIG.DEFAULT_API_KEY ? "" : state.apiKey;
+        }
+    }
+
+    if (elements.demoBadge) {
+        elements.demoBadge.hidden = !isDemo;
+    }
+
+    if (elements.resetKeyBtn) {
+        elements.resetKeyBtn.hidden = isDemo;
+    }
 }
 
 // Init
@@ -237,7 +295,9 @@ async function init() {
             backBtn: document.getElementById('back-btn'),
             apiKeyInput: document.getElementById('api-key-input'),
             saveKeyBtn: document.getElementById('save-key-btn'),
-            modelSelect: document.getElementById('model-select')
+            resetKeyBtn: document.getElementById('reset-key-btn'),
+            modelSelect: document.getElementById('model-select'),
+            demoBadge: document.getElementById('demo-badge')
         };
 
         console.log("Elements queried:", elements);
@@ -264,7 +324,6 @@ async function init() {
         if (elements.settingsBtn) {
             elements.settingsBtn.onclick = () => {
                 console.log("Settings button clicked");
-                if (elements.apiKeyInput) elements.apiKeyInput.value = state.apiKey;
                 switchView('view-settings');
             };
         } else {
@@ -282,14 +341,31 @@ async function init() {
             elements.saveKeyBtn.onclick = () => {
                 console.log("Save key button clicked");
                 const key = elements.apiKeyInput ? elements.apiKeyInput.value.trim() : '';
+
                 if (key) {
+                    // Save User Key
                     state.apiKey = key;
                     localStorage.setItem('gemini_api_key', key);
-                    alert("API Key saved!");
+                    alert("API Key saved! Switched to Custom Mode.");
                     fetchAvailableModels();
+                    updateUIState();
                     switchView('view-camera');
                 } else {
-                    alert("Please enter a valid key.");
+                    alert("Please enter a valid key to save.");
+                }
+            };
+        }
+
+        if (elements.resetKeyBtn) {
+            elements.resetKeyBtn.onclick = () => {
+                if (confirm("Remove your custom key and switch back to Demo Mode?")) {
+                    localStorage.removeItem('gemini_api_key');
+                    state.apiKey = CONFIG.DEFAULT_API_KEY || '';
+                    alert("Switched to Demo Mode.");
+
+                    fetchAvailableModels();
+                    updateUIState();
+                    switchView('view-camera');
                 }
             };
         }
@@ -303,6 +379,9 @@ async function init() {
             };
         }
 
+        // Initial UI Update
+        updateUIState();
+
         // Initial fetch if key exists
         if (state.apiKey) {
             fetchAvailableModels();
@@ -311,8 +390,13 @@ async function init() {
         // Start camera
         await startCamera();
 
-        // Expose for debugging
-        window.debugApp = { state, elements, views };
+        // Expose for debugging (Sanitized)
+        const debugState = { ...state };
+        if (debugState.apiKey) {
+            debugState.apiKey = debugState.isDemoMode ? "HIDDEN_DEMO_KEY" : "HIDDEN_USER_KEY";
+        }
+
+        window.debugApp = { state: debugState, elements, views, CONFIG };
         console.log("App initialized. Debug object available at window.debugApp");
 
     } catch (e) {
