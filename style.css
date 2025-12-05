@@ -29,7 +29,7 @@ body {
     color: var(--text-primary);
     height: 100vh;
     /* Fallback */
-    height: 100dvh;
+    height: var(--app-height, 100vh);
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -44,7 +44,8 @@ body {
     width: 100%;
     background-color: var(--bg-color);
     position: relative;
-    padding-bottom: env(safe-area-inset-bottom);
+    /* Extra buffer for Android nav bars that don't report safe-area */
+    padding-bottom: calc(env(safe-area-inset-bottom) + 20px);
 }
 
 /* Header */

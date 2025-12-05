@@ -300,6 +300,14 @@ async function init() {
         closeManualBtn: document.getElementById('close-manual-btn')
     };
 
+    // Initialize app height for mobile browsers (fixes Android nav bar cutoff)
+    const setAppHeight = () => {
+        const doc = document.documentElement;
+        doc.style.setProperty('--app-height', `${window.innerHeight}px`);
+    };
+    window.addEventListener('resize', setAppHeight);
+    setAppHeight(); // Initial set
+
     if (elements.getStartedBtn) {
         elements.getStartedBtn.onclick = () => {
             localStorage.setItem('saw_intro', 'true');
