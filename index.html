@@ -24,7 +24,7 @@
 <body>
     <script>
         // Version stub for error handling
-        const APP_VERSION_STUB = "v1.2.3";
+        const APP_VERSION_STUB = "v1.2.4";
         window.onerror = function (msg, url, lineNo, columnNo, error) {
             alert("Global Error (" + APP_VERSION_STUB + "): " + msg + "\nURL: " + url + "\nLine: " + lineNo);
             return false;
@@ -78,7 +78,7 @@
                     <canvas id="camera-canvas" hidden></canvas>
                     <div class="camera-overlay">
                         <p class="hint-text">Point at an item to recycle</p>
-                        <p class="app-version version-text">v1.2.3</p>
+                        <p class="app-version version-text">v1.2.4</p>
                     </div>
                 </div>
                 <div class="controls">
@@ -142,185 +142,20 @@
                         <label for="model-select">Model Preference</label>
                         <select id="model-select"
                             style="width: 100%; padding: 0.8rem; border-radius: 12px; border: 1px solid var(--border-color, #ddd); background: var(--bg-color, #fff); font-family: inherit;">
-                            <!DOCTYPE html>
-                            <html lang="en">
+                            <option value="gemini-1.5-pro-latest" selected>Gemini 1.5 Pro (Default)</option>
+                            <option value="gemini-1.5-flash-latest">Gemini 1.5 Flash (Faster)</option>
+                        </select>
+                        <p class="small-text" style="margin-top: 0.25rem;">Select which AI model to use.</p>
+                    </div>
+                    <button id="save-key-btn" class="primary-btn">Save Key</button>
+                    <button id="reset-key-btn" class="secondary-btn" hidden>Remove Key & Use Demo</button>
+                    <p class="small-text app-version" style="text-align: center; margin-top: 2rem; opacity: 0.5;">v1.2.4
+                    </p>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script type="module" src="app.js?v=11"></script>
+</body>
 
-                            <head>
-                                <meta charset="UTF-8">
-                                <meta name="viewport"
-                                    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-                                <title>SortWise - AI Recycling Assistant</title>
-                                <link rel="stylesheet" href="style.css">
-                                <link rel="manifest" href="manifest.json">
-                                <link rel="icon" type="image/png" href="icon.png">
-                                <link rel="apple-touch-icon" href="icon.png">
-                                <link rel="preconnect" href="https://fonts.googleapis.com">
-                                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-                                <link
-                                    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap"
-                                    rel="stylesheet">
-                                <script type="importmap">
-      {
-        "imports": {
-          "@google/generative-ai": "https://esm.run/@google/generative-ai"
-        }
-      }
-    </script>
-                            </head>
-
-                            <body>
-                                <script>
-                                    // Version stub for error handling
-                                    const APP_VERSION_STUB = "v1.2.4";
-                                    window.onerror = function (msg, url, lineNo, columnNo, error) {
-                                        alert("Global Error (" + APP_VERSION_STUB + "): " + msg + "\nURL: " + url + "\nLine: " + lineNo);
-                                        return false;
-                                    };
-                                    window.addEventListener('error', function (e) {
-                                        if (e.target.tagName === 'SCRIPT') {
-                                            alert("Script loading error (" + APP_VERSION_STUB + "): " + e.target.src);
-                                        }
-                                    }, true);
-                                </script>
-                                <div id="app">
-                                    <!-- Header -->
-                                    <header class="app-header">
-                                        <div class="logo">SortWise ♻️</div>
-                                        <button id="settings-btn" class="icon-btn" aria-label="Settings">⚙️</button>
-                                    </header>
-
-                                    <!-- Main Content -->
-                                    <main id="main-content">
-                                        <!-- Intro/Install View -->
-                                        <section id="view-intro" class="view">
-                                            <div class="intro-content">
-                                                <div class="logo-large">♻️</div>
-                                                <h1 style="margin-bottom: 0.5rem;">Welcome to SortWise</h1>
-                                                <p class="subtitle"
-                                                    style="color: var(--text-secondary); margin-bottom: 2rem;">Your AI
-                                                    Recycling
-                                                    Assistant</p>
-
-                                                <div class="install-guide">
-                                                    <h3>📱 How to Install</h3>
-                                                    <p>For the best experience, add this app to your home screen:</p>
-                                                    <div class="platform-instruction">
-                                                        <strong>iOS (Safari):</strong>
-                                                        <p>Tap Share <span style="font-size:1.2rem">⎋</span> → "Add to
-                                                            Home Screen" <span style="font-size:1.2rem">⊞</span></p>
-                                                    </div>
-                                                    <div class="platform-instruction">
-                                                        <strong>Android (Chrome):</strong>
-                                                        <p>Tap Menu <span style="font-size:1.2rem">⋮</span> → "Install
-                                                            app" or "Add to Home screen"
-                                                        </p>
-                                                    </div>
-                                                </div>
-
-                                                <button id="get-started-btn" class="primary-btn"
-                                                    style="margin-top: 2rem;">Get Started →</button>
-                                            </div>
-                                        </section>
-
-                                        <!-- Home/Camera View -->
-                                        <section id="view-camera" class="view">
-                                            <div class="camera-container">
-                                                <video id="camera-feed" autoplay playsinline muted></video>
-                                                <canvas id="camera-canvas" hidden></canvas>
-                                                <div class="camera-overlay">
-                                                    <p class="hint-text">Point at an item to recycle</p>
-                                                    <p class="app-version version-text">v1.2.4</p>
-                                                </div>
-                                            </div>
-                                            <div class="controls">
-                                                <input type="file" id="file-input" accept="image/*" hidden>
-                                                <button id="upload-btn" class="icon-btn secondary-action"
-                                                    aria-label="Upload Image"
-                                                    style="background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); width: 50px; height: 50px; font-size: 1.5rem;">📁</button>
-                                                <button id="capture-btn" class="capture-btn"
-                                                    aria-label="Take Picture"></button>
-                                                <button id="manual-btn" class="icon-btn secondary-action"
-                                                    aria-label="Type Item"
-                                                    style="background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); width: 50px; height: 50px; font-size: 1.5rem;">⌨️</button>
-                                            </div>
-                                        </section>
-
-                                        <!-- Manual Entry View -->
-                                        <section id="view-manual" class="view">
-                                            <div class="settings-header">
-                                                <button id="close-manual-btn" class="text-btn">Cancel</button>
-                                                <h2>Manual Entry</h2>
-                                            </div>
-                                            <div class="settings-form" style="justify-content: center;">
-                                                <label for="manual-input">What item are you recycling?</label>
-                                                <input type="text" id="manual-input"
-                                                    placeholder="e.g. Broken Toaster, Plastic Bag..."
-                                                    style="font-size: 1.2rem; padding: 1rem;">
-                                                <button id="search-btn" class="primary-btn"
-                                                    style="margin-top: 1rem;">Search</button>
-                                            </div>
-                                        </section>
-
-                                        <!-- Results View -->
-                                        <section id="view-result" class="view">
-                                            <div class="result-header">
-                                                <button id="back-btn" class="text-btn">← Back</button>
-                                                <h2>Analysis</h2>
-                                            </div>
-                                            <div class="captured-image-container">
-                                                <img id="captured-image" alt="Captured item" />
-                                            </div>
-                                            <div id="loading-indicator" class="hidden">
-                                                <div class="spinner"></div>
-                                                <p>Analyzing with Gemini...</p>
-                                            </div>
-                                            <div id="analysis-content" class="markdown-body"></div>
-                                            <p class="disclaimer-text">⚠️ <strong>Note:</strong> Advice is AI-generated
-                                                and may be inaccurate.
-                                                Always verify with your local recycling authority.</p>
-                                        </section>
-
-                                        <!-- Settings View -->
-                                        <section id="view-settings" class="view">
-                                            <div class="settings-header">
-                                                <button id="close-settings-btn" class="text-btn">Close</button>
-                                                <h2>Settings</h2>
-                                            </div>
-                                            <div class="settings-form">
-                                                <div id="demo-badge" class="badge warning" hidden>Using Demo Key</div>
-                                                <label for="api-key-input">Gemini API Key</label>
-                                                <input type="password" id="api-key-input"
-                                                    placeholder="Paste your API key here">
-                                                <div class="help-links">
-                                                    <p class="small-text">Your key is stored locally in your browser.
-                                                    </p>
-                                                    <a href="https://aistudio.google.com/app/apikey" target="_blank"
-                                                        class="link-text">Get an API
-                                                        Key ›</a>
-                                                </div>
-                                                <div class="input-group" style="margin-bottom: 1rem;">
-                                                    <label for="model-select">Model Preference</label>
-                                                    <select id="model-select"
-                                                        style="width: 100%; padding: 0.8rem; border-radius: 12px; border: 1px solid var(--border-color, #ddd); background: var(--bg-color, #fff); font-family: inherit;">
-                                                        <option value="gemini-1.5-pro-latest" selected>Gemini 1.5 Pro
-                                                            (Default)</option>
-                                                        <option value="gemini-1.5-flash-latest">Gemini 1.5 Flash
-                                                            (Faster)</option>
-                                                    </select>
-                                                    <p class="small-text" style="margin-top: 0.25rem;">Select which AI
-                                                        model to use.</p>
-                                                </div>
-                                                <button id="save-key-btn" class="primary-btn">Save Key</button>
-                                                <button id="reset-key-btn" class="secondary-btn" hidden>Remove Key & Use
-                                                    Demo</button>
-                                                <p class="small-text app-version"
-                                                    style="text-align: center; margin-top: 2rem; opacity: 0.5;">v1.2.4
-                                                </p>
-                                            </div>
-                                        </section>
-                                    </main>
-                                </div>
-                                <script type="module" src="app.js?v=11"></script>
-                            </body>
-
-                            </html>
+</html>
