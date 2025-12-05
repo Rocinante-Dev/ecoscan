@@ -1,5 +1,8 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+console.log("App.js module loaded");
+// alert("App.js loaded"); // Uncomment if needed for extreme debugging
+
 // State
 const state = {
     apiKey: localStorage.getItem('gemini_api_key') || '',
