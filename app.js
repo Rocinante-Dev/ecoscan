@@ -25,6 +25,16 @@ function getEnvironmentApiKey() {
         return CONFIG.API_KEYS.DEV;
     }
     console.log("Environment: Production");
+
+    // Check for obfuscated demo key first
+    if (CONFIG.API_KEYS.DEMO_ENCODED) {
+        try {
+            return atob(CONFIG.API_KEYS.DEMO_ENCODED);
+        } catch (e) {
+            console.error("Failed to decode demo key");
+        }
+    }
+
     return CONFIG.API_KEYS.PROD;
 }
 
@@ -191,8 +201,10 @@ async function fetchAvailableModels() {
 
 async function analyzeItem(input) {
     if (!state.apiKey) {
-        alert("Please set your Gemini API Key in settings first.");
-        switchView('view-settings');
+        // Show "Get Started" / Missing Key Modal
+        if (elements.limitModalTitle) elements.limitModalTitle.textContent = "✨ Get Started";
+        if (elements.limitModalMsg) elements.limitModalMsg.textContent = "To start recycling with AI, you need a free Google Gemini API Key. It takes about 30 seconds to get one!";
+        elements.limitModal.classList.add('active');
         return;
     }
 
@@ -287,7 +299,19 @@ async function analyzeItem(input) {
             const response = await result.response;
             renderMarkdown(response.text());
         } catch (error) {
+
             console.warn(`Error with ${state.model}:`, error);
+
+            // Handle specific API Leaked/Invalid Key errors
+            if (error.message.includes('403') || error.message.includes('leaked') || error.message.includes('API key not valid')) {
+                // Show Limit Modal but with "Invalid Key" text
+                if (elements.limitModalTitle) elements.limitModalTitle.textContent = "⚠️ Demo Key Expired";
+                if (elements.limitModalMsg) elements.limitModalMsg.textContent = "The shared demo key has expired or is invalid. Please get your own free API key to continue.";
+                elements.limitModal.classList.add('active');
+                elements.analysisContent.innerHTML = `<p style="color: var(--danger-color)">API Key Problem. Please check settings.</p>`;
+                return;
+            }
+
             const isQuotaError = error.message.includes('429') || error.message.includes('Resource has been exhausted');
 
             if (isQuotaError && state.model !== CONFIG.FALLBACK_MODEL) {
@@ -379,6 +403,8 @@ function getDOMElements() {
         locationInput: document.getElementById('location-input'),
         // Limit Modal
         limitModal: document.getElementById('limit-modal'),
+        limitModalTitle: document.getElementById('limit-modal-title'),
+        limitModalMsg: document.getElementById('limit-modal-msg'),
         modalKeyInput: document.getElementById('modal-key-input'),
         saveModalKeyBtn: document.getElementById('save-modal-key-btn')
     };
